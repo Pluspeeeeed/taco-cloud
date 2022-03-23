@@ -3,8 +3,11 @@ package tacos.web;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,9 +25,9 @@ import tacos.Ingredient.Type;
 @RequestMapping("/design")
 @SessionAttributes("tacoOrder")
 public class DesignTacoController {
-    
+
     @ModelAttribute
-    public void addIngredientsToModel(Model model){
+    public void addIngredientsToModel(Model model) {
         List<Ingredient> ingredients = new ArrayList<>();
         ingredients.add(new Ingredient("FLTO", "Flour Tortilla", Type.WRAP));
         ingredients.add(new Ingredient("COTO", "Corn Tortilla", Type.WRAP));
@@ -36,7 +39,7 @@ public class DesignTacoController {
         ingredients.add(new Ingredient("JACK", "Monterrey Jack", Type.CHEESE));
         ingredients.add(new Ingredient("SLSA", "Salsa", Type.SAUCE));
         ingredients.add(new Ingredient("SRCR", "Sour Cream", Type.SAUCE));
-        
+
         Type[] types = Ingredient.Type.values();
         for (Type type : types) {
             model.addAttribute(type.toString().toLowerCase(), filterByType(ingredients, type));
@@ -59,7 +62,12 @@ public class DesignTacoController {
     }
 
     @PostMapping
-    public String processTaco(Taco taco, @ModelAttribute("tacoOrder") TacoOrder tacoOrder) {
+    public String processTaco(
+            @Valid Taco taco, Errors errors,
+            @ModelAttribute("tacoOrder") TacoOrder tacoOrder) {
+        if (errors.hasErrors()) {
+            return "design";
+        }
         log.info("Processing design: " + taco);
         tacoOrder.addTaco(taco);
         return "redirect:/orders/current";
